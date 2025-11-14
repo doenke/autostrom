@@ -1,15 +1,31 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>EV Invoice App</title>
-    <link rel="stylesheet" href="/static/style.css">
-  </head>
-  <body>
-    <header class="header"><img src="https://assets.kanonenwiese.de/US_KanonenwieseLogo.svg" alt="Kanonenwiese" class="logo"></header>
-    <main class="container">
-      {% block content %}{% endblock %}
-    </main>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>K9a Kanonenwiese – Autostromabrechnung</title>
+
+  <!-- Kanonenwiese Favicon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="https://assets.kanonenwiese.de/kanonenwiese_favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://assets.kanonenwiese.de/kanonenwiese_favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://assets.kanonenwiese.de/kanonenwiese_favicon/favicon-16x16.png">
+  <link rel="manifest" href="https://assets.kanonenwiese.de/kanonenwiese_favicon/site.webmanifest">
+  <link rel="shortcut icon" href="https://assets.kanonenwiese.de/kanonenwiese_favicon/favicon.ico">
+  <meta name="theme-color" content="#ffffff">
+
+  <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+
+<body>
+  <header class="header">
+    <img src="https://assets.kanonenwiese.de/US_KanonenwieseLogo.svg"
+         alt="K9a Kanonenwiese Logo"
+         class="logo">
+  </header>
+
+  <main class="container">
+    {% block content %}
+    {% endblock %}
+  </main>
+</body>
 </html>
