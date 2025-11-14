@@ -40,15 +40,6 @@ PAPERLESS_TAGS = os.getenv("PAPERLESS_TAGS", "")
 PAPERLESS_CORRESPONDENT = os.getenv("PAPERLESS_CORRESPONDENT", "")
 PAPERLESS_DOCUMENT_TYPE = os.getenv("PAPERLESS_DOCUMENT_TYPE", "")
 
-BASE_URL = os.getenv("BASE_URL", "").rstrip("/")
-
-def get_base_url(request):
-    if BASE_URL:
-        return BASE_URL
-    # fallback: dynamisch aus request ableiten
-    return str(request.base_url).rstrip("/")
-
-
 app = FastAPI(title="EV Invoice App")
 app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
@@ -254,8 +245,7 @@ def send_email(new_record, pdf_path):
 def index(request: Request):
     df = load_df()
     last = df.iloc[-1].to_dict() if not df.empty else None
-    return templates.TemplateResponse("form.html", {"request": request, "last": last,
-            "base_url": get_base_url(request)})
+    return templates.TemplateResponse("form.html", {"request": request, "last": last})
 
 
 @app.post("/submit", response_class=HTMLResponse)
@@ -297,8 +287,7 @@ def submit(request: Request,
         "mail_ok": mail_ok,
         "mail_msg": mail_msg,
         "paper_ok": paper_ok,
-        "paper_msg": paper_msg,
-        "base_url": get_base_url(request)
+        "paper_msg": paper_msg
     })
 
 @app.get("/invoice/{datestr}", response_class=FileResponse)
