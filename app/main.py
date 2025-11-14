@@ -40,6 +40,8 @@ PAPERLESS_TAGS = os.getenv("PAPERLESS_TAGS", "")
 PAPERLESS_CORRESPONDENT = os.getenv("PAPERLESS_CORRESPONDENT", "")
 PAPERLESS_DOCUMENT_TYPE = os.getenv("PAPERLESS_DOCUMENT_TYPE", "")
 
+BASE_URL = os.getenv("BASE_URL", "").rstrip("/")
+
 app = FastAPI(title="EV Invoice App")
 app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
