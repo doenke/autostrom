@@ -15,6 +15,7 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email import encoders
+from datetime import datetime, date
 
 NC_BASE_URL = os.getenv("NC_BASE_URL", "")
 NC_USERNAME = os.getenv("NC_USERNAME", "")
@@ -243,10 +244,37 @@ def send_email(new_record, pdf_path):
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    df = load_df()
-    last = df.iloc[-1].to_dict() if not df.empty else None
-    return templates.TemplateResponse("form.html", {"request": request, "last": last})
+    error_msg = None
+    last = None
+    rows = []
+    last_price = ""
+    try:
+        df = load_df()                      # CSV wird beim Seitenaufruf geladen
+        if not df.empty:
+            last = df.iloc[-1].to_dict()
+            rows = df.tail(24).to_dict(orient="records")
+            # letzten Strompreis vorbelegen
+            try:
+                last_price = f"{float(last.get('Strompreis', '')):.4f}"
+            except Exception:
+                last_price = ""
+    except Exception as e:
+        # Fehler beim Abruf (z. B. Nextcloud) sichtbar machen
+        error_msg = str(e)
 
+    today_iso = date.today().isoformat()
+
+    return templates.TemplateResponse(
+        "form.html",
+        {
+            "request": request,
+            "last": last,
+            "rows": rows,
+            "last_price": last_price,
+            "today_iso": today_iso,
+            "error_msg": error_msg,
+        }
+    )
 
 @app.post("/submit", response_class=HTMLResponse)
 def submit(request: Request,
