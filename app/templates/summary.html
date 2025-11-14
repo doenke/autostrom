@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1 class="title">Abrechnung erstellt</h1>
+
+<ul class="list">
+  <li>Datum: <strong>{{ record.Datum }}</strong></li>
+  <li>Zählerstand: <strong>{{ record.Zaehlerstand }} kWh</strong></li>
+  <li>Verbrauch: <strong>{{ record.Verbrauch }} kWh</strong></li>
+  <li>Preis: <strong>{{ '%.4f'|format(record.Strompreis) }} €/kWh</strong></li>
+  <li>Betrag: <strong>{{ '%.2f'|format(record.Abrechnung) }} €</strong></li>
+</ul>
+
+<p><a class="button" href="{{ pdf_path }}">PDF ansehen</a></p>
+
+<p class="muted">
+  Mail-Versand: {{ "OK" if mail_ok else "Fehlgeschlagen" }} – {{ mail_msg }}
+</p>
+<p class="muted">
+  Paperless-Upload: {{ "OK" if paper_ok else "Fehlgeschlagen" }} – {{ paper_msg }}
+</p>
+
+<p><a href="/">Neue Abrechnung</a></p>
+{% endblock %}

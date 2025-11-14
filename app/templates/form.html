@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1 class="title">Autostrom Abrechnung</h1>
+{% if last %}
+<p class="muted">Letzte Ablesung: <strong>{{ last.Datum }}</strong> – Zählerstand: <strong>{{ last.Zaehlerstand }} kWh</strong> – Strompreis: <strong>{{ '%.2f'|format(last.Strompreis) }} €/kWh</strong></p>
+{% else %}
+<p class="muted">Noch keine Daten vorhanden.</p>
+{% endif %}
+
+<form method="post" action="/submit" class="card">
+  <label>Ablesedatum
+    <input type="date" name="ablesedatum" required>
+  </label>
+
+  <label>Aktueller Zählerstand (kWh)
+    <input type="number" step="1" name="zaehlerstand" required>
+  </label>
+
+  <label>Strompreis (€/kWh)
+    <input type="number" step="0.0001" name="strompreis_eur" required>
+  </label>
+
+  <label class="checkbox">
+    <input type="checkbox" name="send_mail" checked>
+    PDF per E-Mail senden
+  </label>
+
+  <label class="checkbox">
+    <input type="checkbox" name="upload_paperless">
+    PDF zu Paperless-ngx hochladen
+  </label>
+
+  <button type="submit">Abrechnung erstellen</button>
+</form>
+{% endblock %}
