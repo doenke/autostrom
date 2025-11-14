@@ -254,7 +254,8 @@ def send_email(new_record, pdf_path):
 def index(request: Request):
     df = load_df()
     last = df.iloc[-1].to_dict() if not df.empty else None
-    return templates.TemplateResponse("form.html", {"request": request, "last": last})
+    return templates.TemplateResponse("form.html", {"request": request, "last": last,
+            "base_url": get_base_url(request)})
 
 
 @app.post("/submit", response_class=HTMLResponse)
@@ -296,7 +297,8 @@ def submit(request: Request,
         "mail_ok": mail_ok,
         "mail_msg": mail_msg,
         "paper_ok": paper_ok,
-        "paper_msg": paper_msg
+        "paper_msg": paper_msg,
+        "base_url": get_base_url(request)
     })
 
 @app.get("/invoice/{datestr}", response_class=FileResponse)
