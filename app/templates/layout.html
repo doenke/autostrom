@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Autostromabrechnung</title>
+  <title>K9a Kanonenwiese – Autostromabrechnung</title>
 
-  <!-- Kanonenwiese Favicon -->
+  <!-- Favicons (von deinem Asset-Server) -->
   <link rel="apple-touch-icon" sizes="180x180" href="https://assets.kanonenwiese.de/kanonenwiese_favicon/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="https://assets.kanonenwiese.de/kanonenwiese_favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="https://assets.kanonenwiese.de/kanonenwiese_favicon/favicon-16x16.png">
@@ -13,19 +13,23 @@
   <link rel="shortcut icon" href="https://assets.kanonenwiese.de/kanonenwiese_favicon/favicon.ico">
   <meta name="theme-color" content="#ffffff">
 
-  <link rel="stylesheet" href="{{ base_url }}/static/style.css">
+  <!-- CSS -->
+  <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
 </head>
 
 <body>
-  <header class="header">
-    <img src="https://assets.kanonenwiese.de/US_KanonenwieseLogo.svg"
-         alt="K9a Kanonenwiese Logo"
-         class="logo">
+  <header>
+    <img
+      src="https://assets.kanonenwiese.de/US_KanonenwieseLogo.svg"
+      alt="K9a Kanonenwiese Logo"
+      class="logo">
+    <span class="name">K9a Kanonenwiese</span>
+    <h1>Autostromabrechnung</h1>
   </header>
 
-  <main class="container">
-    {% block content %}
-    {% endblock %}
+  <main>
+    {% block content %}{% endblock %}
   </main>
+
 </body>
 </html>
