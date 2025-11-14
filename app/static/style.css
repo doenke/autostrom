@@ -1,36 +1,138 @@
-:root {
-  --bg: #0b132b;
-  --card: #1c2541;
-  --text: #e0e6f0;
-  --muted: #9fb3c8;
-  --accent: #3a86ff;
-}
-* { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
-.container { max-width: 720px; margin: 40px auto; padding: 0 16px; }
-.title { margin: 0 0 16px; }
-.card { background: var(--card); padding: 16px; border-radius: 14px; box-shadow: 0 10px 24px rgba(0,0,0,.25); display: grid; gap: 12px; }
-label { display: grid; gap: 6px; font-size: 14px; }
-input[type="date"], input[type="number"] { padding: 10px 12px; border-radius: 10px; border: 1px solid #27314f; background: #0f1834; color: var(--text); }
-.checkbox { align-items: center; grid-auto-flow: column; justify-content: start; gap: 8px; }
-.button, button { appearance: none; border: none; background: var(--accent); color: white; padding: 12px 14px; border-radius: 12px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
-.button:hover, button:hover { opacity: .9; }
-.muted { color: var(--muted); }
-.list { list-style: none; padding: 0; display: grid; gap: 6px; }
-a { color: #8ecae6; }
+ <style>
+    :root {
+      --blue-thin: #004c99;
+      --coral: #ff6f61;
+      --background: #f9fafb;
+      --text: #222;
+    }
 
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      overflow-x: hidden;
+    }
 
-.header {
-  max-width: 980px;
-  margin: 20px auto 0;
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-}
-.logo {
-  height: 56px;
-  width: auto;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,.25));
-}
+    body {
+      font-family: system-ui, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
 
+    header {
+      width: 100%;
+      text-align: center;
+      padding: 1rem 1.5rem 0.5rem 1.5rem;
+      border-bottom: 4px solid var(--blue-thin);
+      background: var(--background);
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      margin: 0.2rem 0;
+      color: var(--text);
+    }
+
+    header .name {
+      display: block;
+      font-weight: 600;
+      font-size: 1.9rem;
+      color: var(--blue-thin);
+      margin-top: 0.2rem;
+    }
+
+    main {
+      width: 100%;
+      max-width: 800px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      margin: 1.5rem;
+      box-sizing: border-box;
+    }
+
+    section {
+      margin-bottom: 1.8rem;
+    }
+
+    h2 {
+      color: var(--blue-thin);
+      margin-bottom: 0.6rem;
+    }
+
+    ul, p {
+      margin: 0.2rem 0 0.6rem 0;
+      line-height: 1.5;
+    }
+
+    a.download, a.button-link {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: var(--coral);
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.2s ease;
+      margin-top: 0.2rem;
+    }
+
+    a.download:hover, a.button-link:hover {
+      background: #e55d53;
+    }
+
+    a.tel-link {
+      color: var(--blue-thin);
+      text-decoration: none;
+    }
+
+    a.tel-link:hover {
+      text-decoration: underline;
+    }
+
+    table.medplan {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+    }
+
+    table.medplan th, table.medplan td {
+      border: 1px solid #ddd;
+      padding: 0.5rem;
+      text-align: left;
+    }
+
+    table.medplan th {
+      background-color: #f0f8ff;
+      color: var(--blue-thin);
+    }
+
+    footer {
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+      padding: 1rem 0;
+    }
+
+    @media (max-width: 600px) {
+      main {
+        margin: 0.8rem;
+        padding: 1rem;
+      }
+      header h1 {
+        font-size: 1.4rem;
+      }
+      header .name {
+        font-size: 1.6rem;
+      }
+      table.medplan th, table.medplan td {
+        font-size: 0.9rem;
+        padding: 0.4rem;
+      }
+    }
+  </style>
