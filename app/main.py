@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form, Depends, HTTPException, status
+from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -15,9 +15,6 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email import encoders
-
-APP_USER = os.getenv("APP_USER", "admin")
-APP_PASSWORD = os.getenv("APP_PASSWORD", "change-me")
 
 NC_BASE_URL = os.getenv("NC_BASE_URL", "")
 NC_USERNAME = os.getenv("NC_USERNAME", "")
@@ -46,20 +43,6 @@ PAPERLESS_DOCUMENT_TYPE = os.getenv("PAPERLESS_DOCUMENT_TYPE", "")
 app = FastAPI(title="EV Invoice App")
 app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
-
-def basic_auth(request: Request):
-    auth = request.headers.get("Authorization")
-    if not auth or not auth.lower().startswith("basic "):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, headers={"WWW-Authenticate": "Basic"})
-    try:
-        encoded = auth.split(" ", 1)[1].strip()
-        decoded = base64.b64decode(encoded).decode("utf-8")
-        username, password = decoded.split(":", 1)
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, headers={"WWW-Authenticate": "Basic"})
-    if username != APP_USER or password != APP_PASSWORD:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, headers={"WWW-Authenticate": "Basic"})
-    return True
 
 def nc_enabled():
     return bool(NC_BASE_URL and NC_USERNAME and NC_PASSWORD)
@@ -259,11 +242,11 @@ def send_email(new_record, pdf_path):
     return True, "OK"
 
 @app.get("/", response_class=HTMLResponse)
-def index(request: Request, _: bool = Depends(basic_auth)):
-    # show last entry
+def index(request: Request):
     df = load_df()
     last = df.iloc[-1].to_dict() if not df.empty else None
     return templates.TemplateResponse("form.html", {"request": request, "last": last})
+
 
 @app.post("/submit", response_class=HTMLResponse)
 def submit(request: Request,
@@ -271,8 +254,7 @@ def submit(request: Request,
            zaehlerstand: float = Form(...),
            strompreis_eur: float = Form(...),
            send_mail: str = Form("on"),
-           upload_paperless: str = Form(None),
-           _: bool = Depends(basic_auth)):
+           upload_paperless: str = Form(None)):
     # Append new record (and compute Verbrauch/Abrechnung)
     new_rec = append_row(ablesedatum, zaehlerstand, strompreis_eur)
 
@@ -309,7 +291,7 @@ def submit(request: Request,
     })
 
 @app.get("/invoice/{datestr}", response_class=FileResponse)
-def get_invoice(datestr: str, _: bool = Depends(basic_auth)):
+def get_invoice(datestr: str)  
     path = f"/app/data/invoices/Autostrom-{datestr}.pdf"
     if not os.path.exists(path):
         raise HTTPException(status_code=404, detail="PDF nicht gefunden")
