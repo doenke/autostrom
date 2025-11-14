@@ -1,11 +1,12 @@
 services:
-  ev-invoice-app:
-    build: .
-    container_name: ev-invoice-app
+  autostrom:
+    # baut direkt aus deinem GitHub-Repo (Branch "main")
+    build: https://github.com/doenke/autostrom.git#main
+    container_name: autostrom
     ports:
-      - "8080:8000"
+      - "8089:8000"          # extern 8089 → intern 8000 (FastAPI)
     env_file:
-      - .env
+      - .env                 # lokale .env mit deinen Zugangsdaten
     volumes:
-      - ./data:/app/data
+      - ./data:/app/data     # CSV & PDFs bleiben außerhalb des Containers erhalten
     restart: unless-stopped
