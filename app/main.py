@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-import os, io, base64, csv, requests
+import os, csv, requests
 import pandas as pd
 from datetime import datetime, date
 from reportlab.lib.pagesizes import A4
@@ -291,7 +291,7 @@ def submit(request: Request,
     })
 
 @app.get("/invoice/{datestr}", response_class=FileResponse)
-def get_invoice(datestr: str)  
+def get_invoice(datestr: str):
     path = f"/app/data/invoices/Autostrom-{datestr}.pdf"
     if not os.path.exists(path):
         raise HTTPException(status_code=404, detail="PDF nicht gefunden")
