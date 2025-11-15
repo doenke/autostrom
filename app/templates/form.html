@@ -78,6 +78,13 @@
         </tbody>
       </table>
     </div>
+    <form action="/delete-last" method="post" style="margin-top: 1rem;">
+    <button type="submit" class="danger-button"
+        onclick="return confirm('Willst du wirklich den letzten Eintrag löschen?')">
+        Letzte Zeile aus CSV löschen
+    </button>
+</form>
+    
   </section>
 {% endif %}
 
