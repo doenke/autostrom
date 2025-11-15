@@ -279,6 +279,25 @@ def index(request: Request):
     rows = []
     last_price = ""
 
+    if not nc_enabled():
+        error_msg = (
+            "Nextcloud ist nicht konfiguriert. "
+            "Bitte setze die Umgebungsvariablen <code>NC_URL</code>, "
+            "<code>NC_USERNAME</code> und <code>NC_PASSWORD</code>."
+        )
+        return templates.TemplateResponse(
+            "form.html",
+            {
+                "request": request,
+                "last": None,
+                "rows": [],
+                "last_price": "",
+                "today_iso": date.today().isoformat(),
+                "error_msg": error_msg,
+                "info_msg": None,
+            },
+        )
+    
     try:
         df = load_df()  # CSV wird beim Seitenaufruf geladen
         if df.empty or len(df) == 0:
