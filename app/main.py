@@ -373,3 +373,57 @@ def get_invoice(datestr: str):
     if not os.path.exists(path):
         raise HTTPException(status_code=404, detail="PDF nicht gefunden")
     return FileResponse(path, media_type="application/pdf", filename=os.path.basename(path))
+
+
+@app.post("/delete-last")
+async def delete_last_entry(request: Request):
+    """
+    Löscht die letzte Zeile aus der CSV – lokal oder in Nextcloud.
+    """
+
+    use_nextcloud = all([
+        os.getenv("NC_BASE_URL"),
+        os.getenv("NC_USERNAME"),
+        os.getenv("NC_PASSWORD"),
+        os.getenv("NC_FILEPATH")
+    ])
+
+    local_path = os.getenv("LOCAL_TSV", "/app/data/Autostrom.csv")
+
+    try:
+        # --- CSV Laden ---
+        if use_nextcloud:
+            content = nc_download_file()
+            lines = content.decode("utf-8").splitlines()
+        else:
+            with open(local_path, "r", encoding="utf-8") as f:
+                lines = f.read().splitlines()
+
+        if len(lines) <= 1:
+            return RedirectResponse(
+                "/?error=CSV hat keine weitere Zeile zum Löschen",
+                status_code=303
+            )
+
+        # --- letzte Zeile entfernen ---
+        lines = lines[:-1]
+
+        new_content = "\n".join(lines)
+
+        # --- CSV zurückschreiben ---
+        if use_nextcloud:
+            nc_upload_file(new_content.encode("utf-8"))
+        else:
+            with open(local_path, "w", encoding="utf-8") as f:
+                f.write(new_content)
+
+        return RedirectResponse(
+            "/?success=Letzte Zeile erfolgreich gelöscht",
+            status_code=303
+        )
+
+    except Exception as e:
+        return RedirectResponse(
+            f"/?error=Fehler beim Löschen: {e}",
+            status_code=303
+        )
