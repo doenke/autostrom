@@ -16,6 +16,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email import encoders
 from datetime import datetime, date
+import requests
+
+REQUEST_TIMEOUT = 15  # Sekunden
 
 NC_BASE_URL = os.getenv("NC_BASE_URL", "")
 NC_USERNAME = os.getenv("NC_USERNAME", "")
@@ -45,6 +48,15 @@ app = FastAPI(title="EV Invoice App")
 app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
 
+def parse_price_to_str(value) -> str:
+    """Nimmt '0,32' oder 0.32 etc. und gibt '0.3200' zurück – oder '' bei Fehler."""
+    try:
+        if isinstance(value, str):
+            value = value.replace(",", ".")
+        return f"{float(value):.4f}"
+    except Exception:
+        return ""
+
 def nc_enabled():
     return bool(NC_BASE_URL and NC_USERNAME and NC_PASSWORD)
 
@@ -55,11 +67,11 @@ def nc_url():
 
 def read_tsv_text():
     if nc_enabled():
-        r = requests.get(nc_url(), auth=(NC_USERNAME, NC_PASSWORD))
+        r = requests.get(nc_url(), auth=(NC_USERNAME, NC_PASSWORD), timeout=REQUEST_TIMEOUT)
         if r.status_code == 404:
-            # create with header if missing
             header = "Datum\tZaehlerstand\tStrompreis\tVerbrauch\tAbrechnung\n"
-            requests.put(nc_url(), data=header.encode("utf-8"), auth=(NC_USERNAME, NC_PASSWORD))
+            requests.put(nc_url(), data=header.encode("utf-8"),
+                         auth=(NC_USERNAME, NC_PASSWORD), timeout=REQUEST_TIMEOUT)
             return header
         r.raise_for_status()
         return r.text
@@ -73,7 +85,8 @@ def read_tsv_text():
 
 def write_tsv_text(text: str):
     if nc_enabled():
-        r = requests.put(nc_url(), data=text.encode("utf-8"), auth=(NC_USERNAME, NC_PASSWORD))
+        r = requests.put(nc_url(), data=text.encode("utf-8"),
+                         auth=(NC_USERNAME, NC_PASSWORD), timeout=REQUEST_TIMEOUT)
         r.raise_for_status()
     else:
         with open(LOCAL_TSV, "w", encoding="utf-8") as f:
@@ -81,9 +94,23 @@ def write_tsv_text(text: str):
 
 def load_df():
     txt = read_tsv_text()
+    if not txt or not txt.strip():
+        raise RuntimeError("CSV leer (0 Bytes) – von Nextcloud/Datei kam kein Inhalt zurück.")
+
     from io import StringIO
-    df = pd.read_csv(StringIO(txt), sep="\t")
+    try:
+        df = pd.read_csv(StringIO(txt), sep="\t")
+    except Exception as e:
+        preview = txt[:200].replace("\n", "\\n")
+        raise RuntimeError(f"CSV konnte nicht geparst werden: {e}. Vorschau: '{preview}'")
+
+    required = ["Datum", "Zaehlerstand", "Strompreis", "Verbrauch", "Abrechnung"]
+    missing = [c for c in required if c not in df.columns]
+    if missing:
+        raise RuntimeError(f"CSV-Spalten fehlen: {missing}. Gefunden: {list(df.columns)}")
+
     return df
+
 
 def append_row(form_date_iso: str, zaehlerstand: float, strompreis: float):
     # Build fields in the same format as Node-RED
@@ -242,24 +269,26 @@ def send_email(new_record, pdf_path):
 
     return True, "OK"
 
+from datetime import date  # ist schon drin
+
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     error_msg = None
+    info_msg = None
     last = None
     rows = []
     last_price = ""
+
     try:
-        df = load_df()                      # CSV wird beim Seitenaufruf geladen
-        if not df.empty:
+        df = load_df()  # CSV wird beim Seitenaufruf geladen
+        if df.empty or len(df) == 0:
+            info_msg = ("CSV geladen, aber keine Datenzeilen gefunden. "
+                        "Bitte erste Ablesung erfassen oder Datei prüfen.")
+        else:
             last = df.iloc[-1].to_dict()
             rows = df.tail(24).to_dict(orient="records")
-            # letzten Strompreis vorbelegen
-            try:
-                last_price = f"{float(last.get('Strompreis', '')):.4f}"
-            except Exception:
-                last_price = ""
+            last_price = parse_price_to_str(last.get("Strompreis", ""))
     except Exception as e:
-        # Fehler beim Abruf (z. B. Nextcloud) sichtbar machen
         error_msg = str(e)
 
     today_iso = date.today().isoformat()
@@ -273,6 +302,7 @@ def index(request: Request):
             "last_price": last_price,
             "today_iso": today_iso,
             "error_msg": error_msg,
+            "info_msg": info_msg,
         }
     )
 
