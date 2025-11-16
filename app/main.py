@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, Form, HTTPException
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import os, csv, requests
@@ -91,6 +91,34 @@ def write_tsv_text(text: str):
     else:
         with open(LOCAL_TSV, "w", encoding="utf-8") as f:
             f.write(text)
+
+def nc_download_file() -> bytes:
+    """
+    Lädt die CSV von Nextcloud als raw bytes zurück.
+    Wir verwenden dieselben Timeout/Auth-Settings wie read_tsv_text().
+    """
+    if not nc_enabled():
+        raise RuntimeError("Nextcloud nicht konfiguriert.")
+    r = requests.get(nc_url(), auth=(NC_USERNAME, NC_PASSWORD), timeout=REQUEST_TIMEOUT)
+    # Wenn 404, behandeln wir wie read_tsv_text (Header anlegen)
+    if r.status_code == 404:
+        header = "Datum\tZaehlerstand\tStrompreis\tVerbrauch\tAbrechnung\n"
+        requests.put(nc_url(), data=header.encode("utf-8"),
+                     auth=(NC_USERNAME, NC_PASSWORD), timeout=REQUEST_TIMEOUT)
+        return header.encode("utf-8")
+    r.raise_for_status()
+    return r.content
+
+def nc_upload_file(content_bytes: bytes):
+    """
+    Schreibt raw bytes zurück in die Datei auf Nextcloud (PUT).
+    Wir rufen raise_for_status() um Fehler nach oben zu reichen.
+    """
+    if not nc_enabled():
+        raise RuntimeError("Nextcloud nicht konfiguriert.")
+    r = requests.put(nc_url(), data=content_bytes, auth=(NC_USERNAME, NC_PASSWORD), timeout=REQUEST_TIMEOUT)
+    r.raise_for_status()
+    return True
 
 def load_df():
     txt = read_tsv_text()
@@ -381,12 +409,7 @@ async def delete_last_entry(request: Request):
     Löscht die letzte Zeile aus der CSV – lokal oder in Nextcloud.
     """
 
-    use_nextcloud = all([
-        os.getenv("NC_BASE_URL"),
-        os.getenv("NC_USERNAME"),
-        os.getenv("NC_PASSWORD"),
-        os.getenv("NC_FILEPATH")
-    ])
+    use_nextcloud = nc_enabled()
 
     local_path = os.getenv("LOCAL_TSV", "/app/data/Autostrom.csv")
 
