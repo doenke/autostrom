@@ -234,13 +234,16 @@ def render_pdf(output_path: str, rows, new_record):
 
 
 def upload_paperless(new_record, pdf_path):
+    """
+    Upload to paperless-ngx via /api/documents/post_document/.
+    Returns (ok: bool, message: str)
+    """
     if not PAPERLESS_URL or not PAPERLESS_TOKEN:
-        return False, "Paperless nicht konfiguriert."
+        return False, "Paperless nicht konfiguriert (PAPERLESS_URL/PAPERLESS_TOKEN fehlen)."
+
     endpoint = f"{PAPERLESS_URL}/api/documents/post_document/"
-    headers = {
-        "Authorization": f"Token {PAPERLESS_TOKEN}"
-    }
-    # Prepare multipart form
+    headers = {"Authorization": f"Token {PAPERLESS_TOKEN}"}
+
     files = {
         "document": (f"Autostrom {new_record['Datum']}.pdf", open(pdf_path, "rb"), "application/pdf")
     }
@@ -254,14 +257,40 @@ def upload_paperless(new_record, pdf_path):
         data["correspondent"] = PAPERLESS_CORRESPONDENT
     if PAPERLESS_DOCUMENT_TYPE:
         data["document_type"] = PAPERLESS_DOCUMENT_TYPE
+
+    # Optional: falls dein Paperless ein selbst-signiertes Zertifikat nutzt, setze verify=False.
+    # Achtung: unsicher — nur zum Testen. In Produktion sollte verify=True bleiben.
+    verify_tls = True
+
     try:
-        r = requests.post(endpoint, headers=headers, files=files, data=data, timeout=30)
-        if r.status_code >= 200 and r.status_code < 300:
-            return True, "Hochgeladen"
-        else:
-            return False, f"{r.status_code}: {r.text[:200]}"
+        r = requests.post(endpoint, headers=headers, files=files, data=data, timeout=30, verify=verify_tls)
+    except requests.exceptions.SSLError as e:
+        return False, f"SSL-Fehler: {e}. Wenn Paperless ein selbst-signiertes Zertifikat nutzt, setze verify=False in der Funktion (nur zum Test)."
     except Exception as e:
-        return False, str(e)
+        return False, f"Netzwerk-/Request-Fehler beim Upload: {e}"
+
+    # debug: status + body (kurz)
+    status = r.status_code
+    body = r.text[:1000]  # begrenzen
+
+    if 200 <= status < 300:
+        return True, f"Hochgeladen (Status {status})."
+    else:
+        # Versuche, nützliche Fehlermeldung aus JSON zu ziehen
+        msg = f"Fehler: HTTP {status}"
+        try:
+            j = r.json()
+            # stringify relevant fields if present
+            msg += " - " + (j.get("detail") or j.get("error") or str(j))
+        except Exception:
+            msg += " - " + (body or "keine Antwort")
+        # Log in server logs
+        try:
+            print("[Paperless] POST", endpoint, "Status", status, "Body:", body)
+        except Exception:
+            pass
+        return False, msg
+
 
 def send_email(new_record, pdf_path):
     if not SMTP_HOST or not MAIL_TO:
