@@ -388,7 +388,7 @@ def submit(request: Request,
            zaehlerstand: float = Form(...),
            strompreis_eur: float = Form(...),
            send_mail: str = Form("on"),
-           upload_paperless: str = Form(None)):
+           do_upload_paperless: str = Form(None)):   # renamed param
     # Append new record (and compute Verbrauch/Abrechnung)
     new_rec = append_row(ablesedatum, zaehlerstand, strompreis_eur)
 
@@ -398,7 +398,6 @@ def submit(request: Request,
 
     # Make PDF
     os.makedirs("/app/data/invoices", exist_ok=True)
-    # Use ISO month? Node-RED used Datum directly in filename, we'll keep ISO month to avoid special chars
     d = datetime.strptime(new_rec["Datum"], "%d.%m.%Y")
     pdf_path = f"/app/data/invoices/Autostrom-{d.strftime('%Y-%m-%d')}.pdf"
     render_pdf(pdf_path, rows, new_rec)
@@ -411,8 +410,12 @@ def submit(request: Request,
             mail_ok, mail_msg = False, str(e)
 
     paper_ok, paper_msg = (False, "Übersprungen")
-    if upload_paperless == "on":
-        paper_ok, paper_msg = upload_paperless(new_rec, pdf_path)
+    # use the renamed form field here
+    if do_upload_paperless == "on":
+        try:
+            paper_ok, paper_msg = upload_paperless(new_rec, pdf_path)
+        except Exception as e:
+            paper_ok, paper_msg = False, str(e)
 
     return templates.TemplateResponse("summary.html", {
         "request": request,
@@ -423,6 +426,7 @@ def submit(request: Request,
         "paper_ok": paper_ok,
         "paper_msg": paper_msg
     })
+
 
 @app.get("/invoice/{datestr}", response_class=FileResponse)
 def get_invoice(datestr: str):
