@@ -493,7 +493,7 @@ def index(request: Request):
             "<code>NC_USERNAME</code> und <code>NC_PASSWORD</code>."
         )
         return templates.TemplateResponse(
-            "forms.html",
+            "form.html",
             {
                 "request": request,
                 "last": None,
@@ -531,7 +531,7 @@ def index(request: Request):
     today_iso = date.today().isoformat()
 
     return templates.TemplateResponse(
-        "forms.html",
+        "form.html",
         {
             "request": request,
             "last": last,
