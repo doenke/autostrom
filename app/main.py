@@ -525,7 +525,15 @@ async def login(request: Request):
 async def auth(request: Request):
     """Callback-Route nach erfolgreichem Login."""
     token = await oauth.oidc.authorize_access_token(request)
-    userinfo = await oauth.oidc.parse_id_token(request, token)
+    if "id_token" in token:
+        userinfo = await oauth.oidc.parse_id_token(request, token)
+    else:
+        # Manche OIDC-Anbieter liefern beim Code-Flow kein id_token zurück,
+        # obwohl basic scopes wie "profile" oder "email" angefragt wurden.
+        # In diesem Fall weichen wir auf den /userinfo Endpoint aus, damit
+        # der Login-Prozess trotzdem funktioniert, statt mit einem KeyError
+        # abzubrechen.
+        userinfo = await oauth.oidc.userinfo(token=token)
     request.session["user"] = {
         "sub": userinfo.get("sub"),
         "name": userinfo.get("name") or userinfo.get("preferred_username"),
