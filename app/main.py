@@ -344,6 +344,9 @@ def index(request: Request):
     default_mail_checked = mail_available
     default_paperless_checked = paperless_available
 
+    show_delete_button = False
+
+
     # Nextcloud check (unchanged behavior)
     if not nc_enabled():
         error_msg = (
@@ -378,16 +381,15 @@ def index(request: Request):
             last = df.iloc[-1].to_dict()
             rows = df.tail(24).to_dict(orient="records")
             last_price = parse_price_to_str(last.get("Strompreis", ""))
+            if last and "Datum" in last:
+                last_date = datetime.strptime(last["Datum"], "%d.%m.%Y").date()
+                days_diff = (date.today() - last_date).days
+                show_delete_button = days_diff <= 10
     except Exception as e:
         error_msg = str(e)
 
     today_iso = date.today().isoformat()
-    show_delete_button = False
-    if last and "Datum" in last:
-        last_date = datetime.strptime(last["Datum"], "%d.%m.%Y").date()
-        days_diff = (date.today() - last_date).days
-        show_delete_button = days_diff <= 10
-    
+        
     return templates.TemplateResponse(
         "form.html",
         {
