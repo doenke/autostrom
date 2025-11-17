@@ -252,7 +252,7 @@ def upload_paperless(new_record, pdf_path):
         "created": datetime.strptime(new_record["Datum"], "%d.%m.%Y").date().isoformat()
     }
     if PAPERLESS_TAGS:
-        data["tags"] = PAPERLESS_TAGS
+        data["tags"] = PAPERLESS_TAGS.split(',')
     if PAPERLESS_CORRESPONDENT:
         data["correspondent"] = PAPERLESS_CORRESPONDENT
     if PAPERLESS_DOCUMENT_TYPE:
