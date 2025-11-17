@@ -189,7 +189,7 @@ def render_pdf(output_path: str, rows, new_record):
 
     # Table
     data = [["Datum", "Zählerstand", "Verbrauch", "Strompreis", "Abrechnung"]]
-    for r in rows[:-2]:
+    for r in rows[:-1]:
         data.append([
             r["Datum"],
             f"{int(r['Zaehlerstand'])} kWh",
