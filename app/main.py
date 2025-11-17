@@ -383,12 +383,14 @@ def index(request: Request):
     )
 
 @app.post("/submit", response_class=HTMLResponse)
-def submit(request: Request,
-           ablesedatum: str = Form(...),
-           zaehlerstand: float = Form(...),
-           strompreis_eur: float = Form(...),
-           send_mail: str = Form("on"),
-           do_upload_paperless: str = Form(None)):   # renamed param
+def submit(
+    request: Request,
+    ablesedatum: str = Form(...),
+    zaehlerstand: float = Form(...),
+    strompreis_eur: float = Form(...),
+    send_mail: str | None = Form(None, alias="send_mail"),
+    do_upload_paperless: str | None = Form(None, alias="upload_paperless"),
+):
     # Append new record (and compute Verbrauch/Abrechnung)
     new_rec = append_row(ablesedatum, zaehlerstand, strompreis_eur)
 
@@ -402,16 +404,17 @@ def submit(request: Request,
     pdf_path = f"/app/data/invoices/Autostrom-{d.strftime('%Y-%m-%d')}.pdf"
     render_pdf(pdf_path, rows, new_rec)
 
+    # Mail: nur wenn checkbox gesetzt (HTML sendet "on" wenn angehakt)
     mail_ok, mail_msg = (False, "Übersprungen")
-    if send_mail == "on":
+    if send_mail is not None and send_mail.lower() == "on":
         try:
             mail_ok, mail_msg = send_email(new_rec, pdf_path)
         except Exception as e:
             mail_ok, mail_msg = False, str(e)
 
+    # Paperless: nur wenn checkbox gesetzt
     paper_ok, paper_msg = (False, "Übersprungen")
-    # use the renamed form field here
-    if do_upload_paperless == "on":
+    if do_upload_paperless is not None and do_upload_paperless.lower() == "on":
         try:
             paper_ok, paper_msg = upload_paperless(new_rec, pdf_path)
         except Exception as e:
@@ -426,6 +429,7 @@ def submit(request: Request,
         "paper_ok": paper_ok,
         "paper_msg": paper_msg
     })
+
 
 
 @app.get("/invoice/{datestr}", response_class=FileResponse)
