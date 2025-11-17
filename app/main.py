@@ -360,11 +360,12 @@ def index(request: Request):
                 "last_price": "",
                 "today_iso": date.today().isoformat(),
                 "error_msg": error_msg,
-                "info_msg": info_msg,
+                "info_msg": None,
                 "mail_available": mail_available,
                 "paperless_available": paperless_available,
                 "default_mail_checked": default_mail_checked,
                 "default_paperless_checked": default_paperless_checked,
+                "show_delete_button": show_delete_button
             },
         )
 
