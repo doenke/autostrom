@@ -194,6 +194,11 @@ def append_row(form_date_iso: str, zaehlerstand: float, strompreis: float) -> di
     df = load_df()
     last_zaehler = int(df.iloc[-1]["Zaehlerstand"]) if not df.empty else 0
     verbrauch = max(0, round(zaehlerstand - last_zaehler))
+    if not df.empty and not (10 <= verbrauch <= 2000):
+        raise ValueError(
+            "Der berechnete Verbrauch liegt außerhalb des zulässigen Bereichs "
+            "von 10 bis 2000 kWh. Bitte Eingaben prüfen."
+        )
     abrechnung = round(verbrauch * strompreis, 2)
 
     d = datetime.fromisoformat(form_date_iso).date()
@@ -470,6 +475,12 @@ def index(request: Request):
     rows: list[dict] = []
     last_price = ""
     show_delete_button = False
+    today_iso = date.today().isoformat()
+    form_values = {
+        "ablesedatum": today_iso,
+        "zaehlerstand": "",
+        "strompreis_eur": "",
+    }
 
     # Verfügbarkeit der Features
     mail_available = bool(SMTP_HOST and MAIL_TO)
@@ -499,7 +510,7 @@ def index(request: Request):
                 "last": None,
                 "rows": [],
                 "last_price": "",
-                "today_iso": date.today().isoformat(),
+                "today_iso": today_iso,
                 "error_msg": error_msg,
                 "info_msg": info_msg,
                 "mail_available": mail_available,
@@ -507,6 +518,7 @@ def index(request: Request):
                 "default_mail_checked": default_mail_checked,
                 "default_paperless_checked": default_paperless_checked,
                 "show_delete_button": show_delete_button,
+                "form_values": form_values,
             },
         )
 
@@ -521,14 +533,13 @@ def index(request: Request):
             last = df.iloc[-1].to_dict()
             rows = df.tail(24).to_dict(orient="records")
             last_price = parse_price_to_str(last.get("Strompreis", ""))
+            form_values["strompreis_eur"] = last_price
             if last and "Datum" in last:
                 last_date = datetime.strptime(last["Datum"], "%d.%m.%Y").date()
                 days_diff = (date.today() - last_date).days
                 show_delete_button = days_diff <= 10
     except Exception as e:
         error_msg = str(e)
-
-    today_iso = date.today().isoformat()
 
     return templates.TemplateResponse(
         "form.html",
@@ -545,6 +556,7 @@ def index(request: Request):
             "default_mail_checked": default_mail_checked,
             "default_paperless_checked": default_paperless_checked,
             "show_delete_button": show_delete_button,
+            "form_values": form_values,
         },
     )
 
@@ -558,8 +570,67 @@ def submit(
     send_mail: str | None = Form(None, alias="send_mail"),
     do_upload_paperless: str | None = Form(None, alias="upload_paperless"),
 ):
-    # Neue Zeile anhängen (inkl. Verbrauch/Abrechnung)
-    new_rec = append_row(ablesedatum, zaehlerstand, strompreis_eur)
+    mail_available = bool(SMTP_HOST and MAIL_TO)
+    paperless_available = bool(PAPERLESS_URL and PAPERLESS_TOKEN)
+    default_mail_checked = mail_available
+    default_paperless_checked = paperless_available
+    today_iso = date.today().isoformat()
+
+    try:
+        new_rec = append_row(ablesedatum, zaehlerstand, strompreis_eur)
+    except ValueError as validation_error:
+        error_msg = str(validation_error)
+        form_values = {
+            "ablesedatum": ablesedatum,
+            "zaehlerstand": str(zaehlerstand),
+            "strompreis_eur": f"{strompreis_eur:.4f}",
+        }
+        last: dict | None = None
+        rows: list[dict] = []
+        last_price = ""
+        show_delete_button = False
+
+        try:
+            df = load_df()
+            if not df.empty:
+                last = df.iloc[-1].to_dict()
+                rows = df.tail(24).to_dict(orient="records")
+                last_price = parse_price_to_str(last.get("Strompreis", ""))
+                if last and "Datum" in last:
+                    last_date = datetime.strptime(last["Datum"], "%d.%m.%Y").date()
+                    days_diff = (date.today() - last_date).days
+                    show_delete_button = days_diff <= 10
+        except Exception as load_error:
+            error_msg = (
+                f"{error_msg} (Daten konnten nicht neu geladen werden: {load_error})"
+            )
+
+        default_mail_checked = (
+            send_mail is not None and send_mail.lower() == "on"
+        )
+        default_paperless_checked = (
+            do_upload_paperless is not None
+            and do_upload_paperless.lower() == "on"
+        )
+
+        return templates.TemplateResponse(
+            "form.html",
+            {
+                "request": request,
+                "last": last,
+                "rows": rows,
+                "last_price": last_price,
+                "today_iso": today_iso,
+                "error_msg": error_msg,
+                "info_msg": None,
+                "mail_available": mail_available,
+                "paperless_available": paperless_available,
+                "default_mail_checked": default_mail_checked,
+                "default_paperless_checked": default_paperless_checked,
+                "show_delete_button": show_delete_button,
+                "form_values": form_values,
+            },
+        )
 
     # Erneut laden für PDF-Tabelle
     df = load_df()

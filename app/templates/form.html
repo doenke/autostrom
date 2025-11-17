@@ -1,6 +1,10 @@
 {% extends "layout.html" %}
 {% block content %}
 
+{% if form_values is not defined %}
+  {% set form_values = {} %}
+{% endif %}
+
 {% if error_msg %}
   <div class="alert alert-error">
     <strong>Fehler beim Laden der Daten:</strong><br>
@@ -33,7 +37,7 @@
     type="date"
     id="ablesedatum"
     name="ablesedatum"
-    value="{{ today_iso }}"
+    value="{{ form_values.ablesedatum or today_iso }}"
     required
   >
 
@@ -44,8 +48,12 @@
     id="zaehlerstand"
     name="zaehlerstand"
     placeholder="z. B. 12345"
+    value="{{ form_values.zaehlerstand or '' }}"
     required
   >
+  <small class="muted">
+    Hinweis: Der Verbrauch zwischen zwei Ablesungen muss zwischen 10 und 2000 kWh liegen.
+  </small>
 
   <label for="strompreis_eur">Strompreis (€/kWh)</label>
   <input
@@ -53,7 +61,7 @@
     step="0.0001"
     id="strompreis_eur"
     name="strompreis_eur"
-    value="{{ last_price }}"
+    value="{{ form_values.strompreis_eur or last_price }}"
     placeholder="z. B. 0.3200"
     required
   >
