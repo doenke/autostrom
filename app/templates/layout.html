@@ -1,45 +1,25 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Autostromabrechnung</title>
+<script>
+  async function deleteLastEntry(event) {
+    event.preventDefault();
+    if (!confirm('Willst du wirklich den letzten Eintrag löschen?')) {
+      return;
+    }
+    try {
+      const response = await fetch('/delete-last', { method: 'POST' });
+      const result = await response.json();
+      alert(result.message);
+      if (result.success) {
+        window.location.reload();
+      }
+    } catch (error) {
+      alert('Fehler beim Löschen: ' + error);
+    }
+  }
 
-  <!-- Favicons (von deinem Asset-Server) -->
-  <link rel="apple-touch-icon" sizes="180x180" href="https://assets.kanonenwiese.de/kanonenwiese_favicon/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="https://assets.kanonenwiese.de/kanonenwiese_favicon/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="https://assets.kanonenwiese.de/kanonenwiese_favicon/favicon-16x16.png">
-  <link rel="manifest" href="https://assets.kanonenwiese.de/kanonenwiese_favicon/site.webmanifest">
-  <link rel="shortcut icon" href="https://assets.kanonenwiese.de/kanonenwiese_favicon/favicon.ico">
-  <meta name="theme-color" content="#ffffff">
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
-</head>
-
-<body>
-  <header>
-    <img
-      src="https://assets.kanonenwiese.de/US_KanonenwieseLogo.svg"
-      alt="K9a Kanonenwiese Logo"
-      class="logo">
-    <span class="name">Autostromabrechnung</span>
-  </header>
-
-  <main>
-    {% if request.query_params.get("error") %}
-<div style="background:#ffdddd;padding:0.8rem;border-left:4px solid #b03535;margin-bottom:1rem;">
-  {{ request.query_params.get("error") }}
-</div>
-{% endif %}
-
-{% if request.query_params.get("success") %}
-<div style="background:#ddffdd;padding:0.8rem;border-left:4px solid #35b04f;margin-bottom:1rem;">
-  {{ request.query_params.get("success") }}
-</div>
-{% endif %}
-    {% block content %}{% endblock %}
-  </main>
-
-</body>
-</html>
+  document.addEventListener('DOMContentLoaded', () => {
+    const deleteForm = document.getElementById('delete-form');
+    if (deleteForm) {
+      deleteForm.addEventListener('submit', deleteLastEntry);
+    }
+  });
+</script>
