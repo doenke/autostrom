@@ -741,6 +741,17 @@ def submit(
         except Exception as e:
             paper_ok, paper_msg = False, str(e)
 
+    mail_status = (
+        "OK"
+        if mail_ok
+        else ("Übersprungen" if mail_msg == "Übersprungen" else "Fehlgeschlagen")
+    )
+    paper_status = (
+        "OK"
+        if paper_ok
+        else ("Übersprungen" if paper_msg == "Übersprungen" else "Fehlgeschlagen")
+    )
+
     return templates.TemplateResponse(
         "summary.html",
         {
@@ -749,8 +760,10 @@ def submit(
             "pdf_path": f"/invoice/{d.strftime('%Y-%m-%d')}",
             "mail_ok": mail_ok,
             "mail_msg": mail_msg,
+            "mail_status": mail_status,
             "paper_ok": paper_ok,
             "paper_msg": paper_msg,
+            "paper_status": paper_status,
         },
     )
 
