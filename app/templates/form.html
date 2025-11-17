@@ -2,14 +2,14 @@
 {% block content %}
 
 {% if error_msg %}
-  <div style="padding:0.8rem 1rem; border:1px solid #f5c2c7; background:#fde2e4; color:#7a1520; border-radius:8px; margin-bottom:1rem;">
+  <div class="alert alert-error">
     <strong>Fehler beim Laden der Daten:</strong><br>
     <code>{{ error_msg }}</code>
   </div>
 {% endif %}
 
 {% if info_msg and not error_msg %}
-  <div style="padding:0.8rem 1rem; border:1px solid #cfe2ff; background:#eaf2ff; color:#0b3d91; border-radius:8px; margin-bottom:1rem;">
+  <div class="alert alert-info">
     {{ info_msg }}
   </div>
 {% endif %}
@@ -25,40 +25,71 @@
   {% endif %}
 </p>
 
-<form method="post" action="/submit" class="card" style="margin-top:1rem;">
+<form method="post" action="/submit" class="card form-new-reading">
   <!-- If you use CSRF protection, include the token here, e.g. {{ csrf_token() }} -->
-  <label>Ablesedatum
-    <input type="date" name="ablesedatum" value="{{ today_iso }}" required>
-  </label>
 
-  <label>Aktueller Zählerstand (kWh)
-    <input type="number" step="1" name="zaehlerstand" placeholder="z. B. 12345" required>
-  </label>
+  <label for="ablesedatum">Ablesedatum</label>
+  <input
+    type="date"
+    id="ablesedatum"
+    name="ablesedatum"
+    value="{{ today_iso }}"
+    required
+  >
 
-  <label>Strompreis (€/kWh)
-    <input type="number" step="0.0001" name="strompreis_eur" value="{{ last_price }}" placeholder="z. B. 0.3200" required>
-  </label>
+  <label for="zaehlerstand">Aktueller Zählerstand (kWh)</label>
+  <input
+    type="number"
+    step="1"
+    id="zaehlerstand"
+    name="zaehlerstand"
+    placeholder="z. B. 12345"
+    required
+  >
+
+  <label for="strompreis_eur">Strompreis (€/kWh)</label>
+  <input
+    type="number"
+    step="0.0001"
+    id="strompreis_eur"
+    name="strompreis_eur"
+    value="{{ last_price }}"
+    placeholder="z. B. 0.3200"
+    required
+  >
 
   {% if mail_available %}
-  <label class="checkbox">
-    <input type="checkbox" name="send_mail" {% if default_mail_checked %}checked{% endif %}>
-    PDF per E-Mail senden
-  </label>
+    <label class="checkbox" for="send_mail">
+      <input
+        type="checkbox"
+        id="send_mail"
+        name="send_mail"
+        {% if default_mail_checked %}checked{% endif %}
+      >
+      PDF per E-Mail senden
+    </label>
   {% endif %}
 
   {% if paperless_available %}
-  <label class="checkbox">
-    <input type="checkbox" name="upload_paperless" {% if default_paperless_checked %}checked{% endif %}>
-    PDF zu Paperless-ngx hochladen
-  </label>
+    <label class="checkbox" for="upload_paperless">
+      <input
+        type="checkbox"
+        id="upload_paperless"
+        name="upload_paperless"
+        {% if default_paperless_checked %}checked{% endif %}
+      >
+      PDF zu Paperless-ngx hochladen
+    </label>
   {% endif %}
+
   <button type="submit">Abrechnung erstellen</button>
 </form>
 
 {% if rows and rows|length > 0 %}
-  <section style="margin-top:2rem;">
+  <section class="section-entries">
     <h2>Letzte Einträge</h2>
-    <div style="overflow:auto;">
+
+    <div class="table-wrapper">
       <table class="medplan">
         <thead>
           <tr>
@@ -84,13 +115,16 @@
     </div>
 
     {% if show_delete_button %}
-    <form action="/delete-last" method="post" style="margin-top: 1rem;">
-      <!-- If you use CSRF protection, include the token here -->
-      <button type="submit" class="danger-button"
-          onclick="return confirm('Willst du wirklich den letzten Eintrag löschen?')">
+      <form action="/delete-last" method="post" class="delete-form">
+        <!-- If you use CSRF protection, include the token here -->
+        <button
+          type="submit"
+          class="danger-button"
+          onclick="return confirm('Willst du wirklich den letzten Eintrag löschen?')"
+        >
           Letzte Zeile aus CSV löschen
-      </button>
-    </form>
+        </button>
+      </form>
     {% endif %}
   </section>
 {% endif %}
