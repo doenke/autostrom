@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import os, csv, requests
 import pandas as pd
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet
@@ -360,7 +360,7 @@ def index(request: Request):
                 "last_price": "",
                 "today_iso": date.today().isoformat(),
                 "error_msg": error_msg,
-                "info_msg": None,
+                "info_msg": info_msg,
                 "mail_available": mail_available,
                 "paperless_available": paperless_available,
                 "default_mail_checked": default_mail_checked,
@@ -381,7 +381,12 @@ def index(request: Request):
         error_msg = str(e)
 
     today_iso = date.today().isoformat()
-
+    show_delete_button = False
+    if last and "Datum" in last:
+        last_date = datetime.strptime(last["Datum"], "%d.%m.%Y").date()
+        days_diff = (date.today() - last_date).days
+        show_delete_button = days_diff <= 10
+    
     return templates.TemplateResponse(
         "form.html",
         {
@@ -396,6 +401,7 @@ def index(request: Request):
             "paperless_available": paperless_available,
             "default_mail_checked": default_mail_checked,
             "default_paperless_checked": default_paperless_checked,
+            "show_delete_button": show_delete_button
         }
     )
 
