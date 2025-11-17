@@ -10,6 +10,7 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from authlib.integrations.base_client.errors import OAuthError
 from authlib.integrations.starlette_client import OAuth
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
@@ -524,8 +525,18 @@ async def login(request: Request):
 @app.get("/auth")
 async def auth(request: Request):
     """Callback-Route nach erfolgreichem Login."""
-    token = await oauth.oidc.authorize_access_token(request)
-    if "id_token" in token:
+    try:
+        token = await oauth.oidc.authorize_access_token(request)
+    except OAuthError as exc:
+        description = exc.description or exc.error or "Unbekannter OIDC-Fehler"
+        raise HTTPException(
+            status_code=400,
+            detail=f"OIDC-Login fehlgeschlagen: {description}",
+        ) from exc
+
+    if "userinfo" in token:
+        userinfo = token["userinfo"]
+    elif "id_token" in token:
         userinfo = await oauth.oidc.parse_id_token(request, token)
     else:
         # Manche OIDC-Anbieter liefern beim Code-Flow kein id_token zurück,
