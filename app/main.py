@@ -336,10 +336,19 @@ def index(request: Request):
     rows = []
     last_price = ""
 
+    # availability flags
+    mail_available = bool(SMTP_HOST and MAIL_TO)
+    paperless_available = bool(PAPERLESS_URL and PAPERLESS_TOKEN)
+
+    # default checked if configured
+    default_mail_checked = mail_available
+    default_paperless_checked = paperless_available
+
+    # Nextcloud check (unchanged behavior)
     if not nc_enabled():
         error_msg = (
             "Nextcloud ist nicht konfiguriert. "
-            "Bitte setze die Umgebungsvariablen <code>NC_URL</code>, "
+            "Bitte setze die Umgebungsvariablen <code>NC_BASE_URL</code>, "
             "<code>NC_USERNAME</code> und <code>NC_PASSWORD</code>."
         )
         return templates.TemplateResponse(
@@ -352,9 +361,13 @@ def index(request: Request):
                 "today_iso": date.today().isoformat(),
                 "error_msg": error_msg,
                 "info_msg": None,
+                "mail_available": mail_available,
+                "paperless_available": paperless_available,
+                "default_mail_checked": default_mail_checked,
+                "default_paperless_checked": default_paperless_checked,
             },
         )
-    
+
     try:
         df = load_df()  # CSV wird beim Seitenaufruf geladen
         if df.empty or len(df) == 0:
@@ -379,8 +392,13 @@ def index(request: Request):
             "today_iso": today_iso,
             "error_msg": error_msg,
             "info_msg": info_msg,
+            "mail_available": mail_available,
+            "paperless_available": paperless_available,
+            "default_mail_checked": default_mail_checked,
+            "default_paperless_checked": default_paperless_checked,
         }
     )
+
 
 @app.post("/submit", response_class=HTMLResponse)
 def submit(
