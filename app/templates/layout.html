@@ -1,25 +1,37 @@
-<script>
-  async function deleteLastEntry(event) {
-    event.preventDefault();
-    if (!confirm('Willst du wirklich den letzten Eintrag löschen?')) {
-      return;
-    }
-    try {
-      const response = await fetch('/delete-last', { method: 'POST' });
-      const result = await response.json();
-      alert(result.message);
-      if (result.success) {
-        window.location.reload();
-      }
-    } catch (error) {
-      alert('Fehler beim Löschen: ' + error);
-    }
-  }
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Autostrom Abrechnung</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}" />
+  </head>
+  <body>
+    <header>
+      <span class="name">Autostrom</span>
+      <h1>Abrechnung &amp; Versand</h1>
+    </header>
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const deleteForm = document.getElementById('delete-form');
-    if (deleteForm) {
-      deleteForm.addEventListener('submit', deleteLastEntry);
-    }
-  });
-</script>
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+      Autostrom &ndash; Nextcloud CSV Abrechnung
+    </footer>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var deleteForm = document.querySelector('.delete-form');
+        if (!deleteForm) {
+          return;
+        }
+        deleteForm.addEventListener('submit', function (event) {
+          if (!confirm('Willst du wirklich den letzten Eintrag löschen?')) {
+            event.preventDefault();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
