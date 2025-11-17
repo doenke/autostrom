@@ -10,7 +10,9 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from fastapi import FastAPI, Form, HTTPException, Request
+from authlib.integrations.starlette_client import OAuth
+from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -25,8 +27,11 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
+from starlette.middleware.sessions import SessionMiddleware
 
 REQUEST_TIMEOUT = 15  # Sekunden
+
+load_dotenv()
 
 NC_BASE_URL = os.getenv("NC_BASE_URL", "")
 NC_USERNAME = os.getenv("NC_USERNAME", "")
@@ -52,7 +57,27 @@ PAPERLESS_TAGS = os.getenv("PAPERLESS_TAGS", "")
 PAPERLESS_CORRESPONDENT = os.getenv("PAPERLESS_CORRESPONDENT", "")
 PAPERLESS_DOCUMENT_TYPE = os.getenv("PAPERLESS_DOCUMENT_TYPE", "")
 
+OIDC_ISSUER = os.getenv("OIDC_ISSUER", "").rstrip("/")
+OIDC_CLIENT_ID = os.getenv("OIDC_CLIENT_ID", "")
+OIDC_CLIENT_SECRET = os.getenv("OIDC_CLIENT_SECRET", "")
+OIDC_SCOPE = os.getenv("OIDC_SCOPE", "openid profile email")
+SESSION_SECRET = os.getenv("SESSION_SECRET")
+
+if not SESSION_SECRET:
+    raise RuntimeError("SESSION_SECRET muss gesetzt sein, um Sessions zu signieren.")
+
+if not (OIDC_ISSUER and OIDC_CLIENT_ID and OIDC_CLIENT_SECRET):
+    raise RuntimeError(
+        "OIDC ist nicht vollständig konfiguriert. Bitte OIDC_ISSUER, "
+        "OIDC_CLIENT_ID und OIDC_CLIENT_SECRET setzen."
+    )
+
 app = FastAPI(title="EV Invoice App")
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=SESSION_SECRET,
+    same_site="lax",
+)
 
 BASE_DIR = os.path.dirname(__file__)
 app.mount(
@@ -61,6 +86,25 @@ app.mount(
     name="static",
 )
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+
+oauth = OAuth()
+oauth.register(
+    name="oidc",
+    server_metadata_url=f"{OIDC_ISSUER}/.well-known/openid-configuration",
+    client_id=OIDC_CLIENT_ID,
+    client_secret=OIDC_CLIENT_SECRET,
+    client_kwargs={"scope": OIDC_SCOPE},
+)
+
+
+def require_user(request: Request) -> dict:
+    """Stellt sicher, dass ein eingeloggter Nutzer vorhanden ist."""
+    user = request.session.get("user")
+    if user:
+        return user
+
+    request.session["next"] = str(request.url)
+    raise HTTPException(status_code=307, headers={"Location": "/login"}, detail="Login erforderlich")
 
 
 # ---------------------------------------------------------------------------
@@ -467,8 +511,38 @@ def send_email(new_record: dict, pdf_path: str) -> tuple[bool, str]:
 # ---------------------------------------------------------------------------
 
 
+@app.get("/login")
+async def login(request: Request):
+    """Startet den OIDC Login Flow."""
+    next_param = request.query_params.get("next")
+    if next_param:
+        request.session["next"] = next_param
+    redirect_uri = request.url_for("auth")
+    return await oauth.oidc.authorize_redirect(request, redirect_uri)
+
+
+@app.get("/auth")
+async def auth(request: Request):
+    """Callback-Route nach erfolgreichem Login."""
+    token = await oauth.oidc.authorize_access_token(request)
+    userinfo = await oauth.oidc.parse_id_token(request, token)
+    request.session["user"] = {
+        "sub": userinfo.get("sub"),
+        "name": userinfo.get("name") or userinfo.get("preferred_username"),
+        "email": userinfo.get("email"),
+    }
+    redirect_to = request.session.pop("next", "/")
+    return RedirectResponse(redirect_to, status_code=303)
+
+
+@app.get("/logout")
+async def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse("/login", status_code=303)
+
+
 @app.get("/", response_class=HTMLResponse)
-def index(request: Request):
+def index(request: Request, user: dict = Depends(require_user)):
     error_msg: str | None = None
     info_msg: str | None = None
     last: dict | None = None
@@ -569,6 +643,7 @@ def submit(
     strompreis_eur: float = Form(...),
     send_mail: str | None = Form(None, alias="send_mail"),
     do_upload_paperless: str | None = Form(None, alias="upload_paperless"),
+    user: dict = Depends(require_user),
 ):
     mail_available = bool(SMTP_HOST and MAIL_TO)
     paperless_available = bool(PAPERLESS_URL and PAPERLESS_TOKEN)
@@ -673,7 +748,7 @@ def submit(
 
 
 @app.get("/invoice/{datestr}", response_class=FileResponse)
-def get_invoice(datestr: str):
+def get_invoice(datestr: str, user: dict = Depends(require_user)):
     path = f"/app/data/invoices/Autostrom-{datestr}.pdf"
     if not os.path.exists(path):
         raise HTTPException(status_code=404, detail="PDF nicht gefunden")
@@ -685,7 +760,7 @@ def get_invoice(datestr: str):
 
 
 @app.post("/delete-last")
-async def delete_last_entry(request: Request):
+async def delete_last_entry(request: Request, user: dict = Depends(require_user)):
     """
     Löscht die letzte Zeile aus der CSV – lokal oder in Nextcloud.
     """
