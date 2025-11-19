@@ -64,14 +64,10 @@ OIDC_CLIENT_SECRET = os.getenv("OIDC_CLIENT_SECRET", "")
 OIDC_SCOPE = os.getenv("OIDC_SCOPE", "openid profile email")
 SESSION_SECRET = os.getenv("SESSION_SECRET")
 
+OIDC_ENABLED = bool(OIDC_ISSUER and OIDC_CLIENT_ID and OIDC_CLIENT_SECRET)
+
 if not SESSION_SECRET:
     raise RuntimeError("SESSION_SECRET muss gesetzt sein, um Sessions zu signieren.")
-
-if not (OIDC_ISSUER and OIDC_CLIENT_ID and OIDC_CLIENT_SECRET):
-    raise RuntimeError(
-        "OIDC ist nicht vollständig konfiguriert. Bitte OIDC_ISSUER, "
-        "OIDC_CLIENT_ID und OIDC_CLIENT_SECRET setzen."
-    )
 
 app = FastAPI(title="EV Invoice App")
 app.add_middleware(
@@ -88,18 +84,23 @@ app.mount(
 )
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
-oauth = OAuth()
-oauth.register(
-    name="oidc",
-    server_metadata_url=f"{OIDC_ISSUER}/.well-known/openid-configuration",
-    client_id=OIDC_CLIENT_ID,
-    client_secret=OIDC_CLIENT_SECRET,
-    client_kwargs={"scope": OIDC_SCOPE},
-)
+oauth = OAuth() if OIDC_ENABLED else None
+if OIDC_ENABLED:
+    oauth.register(
+        name="oidc",
+        server_metadata_url=f"{OIDC_ISSUER}/.well-known/openid-configuration",
+        client_id=OIDC_CLIENT_ID,
+        client_secret=OIDC_CLIENT_SECRET,
+        client_kwargs={"scope": OIDC_SCOPE},
+    )
 
 
 def require_user(request: Request) -> dict:
     """Stellt sicher, dass ein eingeloggter Nutzer vorhanden ist."""
+    if not OIDC_ENABLED:
+        # Ohne OIDC ist keine Authentifizierung notwendig
+        return {}
+
     user = request.session.get("user")
     if user:
         return user
@@ -515,6 +516,8 @@ def send_email(new_record: dict, pdf_path: str) -> tuple[bool, str]:
 @app.get("/login")
 async def login(request: Request):
     """Startet den OIDC Login Flow."""
+    if not OIDC_ENABLED or oauth is None:
+        raise HTTPException(status_code=404, detail="OIDC ist nicht konfiguriert")
     next_param = request.query_params.get("next")
     if next_param:
         request.session["next"] = next_param
@@ -525,6 +528,8 @@ async def login(request: Request):
 @app.get("/auth")
 async def auth(request: Request):
     """Callback-Route nach erfolgreichem Login."""
+    if not OIDC_ENABLED or oauth is None:
+        raise HTTPException(status_code=404, detail="OIDC ist nicht konfiguriert")
     try:
         token = await oauth.oidc.authorize_access_token(request)
     except OAuthError as exc:
@@ -556,6 +561,8 @@ async def auth(request: Request):
 
 @app.get("/logout")
 async def logout(request: Request):
+    if not OIDC_ENABLED:
+        return RedirectResponse("/", status_code=303)
     request.session.clear()
     return RedirectResponse("/login", status_code=303)
 
