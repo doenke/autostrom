@@ -22,15 +22,52 @@
 
     <script>
       document.addEventListener('DOMContentLoaded', function () {
-        var deleteForm = document.querySelector('.delete-form');
-        if (!deleteForm) {
-          return;
-        }
-        deleteForm.addEventListener('submit', function (event) {
-          if (!confirm('Willst du wirklich den letzten Eintrag löschen?')) {
-            event.preventDefault();
-          }
+        const locale = navigator.language || 'de-DE';
+
+        document.querySelectorAll('.delete-entry-form').forEach(function (form) {
+          form.addEventListener('submit', function (event) {
+            if (!confirm('Willst du wirklich den letzten Eintrag löschen?')) {
+              event.preventDefault();
+            }
+          });
         });
+
+        const numberFormatterCache = {};
+        const getFormatter = function (decimals, grouping) {
+          const key = decimals + '|' + grouping;
+          if (!numberFormatterCache[key]) {
+            numberFormatterCache[key] = new Intl.NumberFormat(locale, {
+              minimumFractionDigits: decimals,
+              maximumFractionDigits: decimals,
+              useGrouping: grouping,
+            });
+          }
+          return numberFormatterCache[key];
+        };
+
+        document.querySelectorAll('[data-number]').forEach(function (el) {
+          const rawValue = Number(el.getAttribute('data-number'));
+          if (!Number.isFinite(rawValue)) {
+            return;
+          }
+          const decimals = parseInt(el.getAttribute('data-decimals') || '0', 10);
+          const grouping = (el.getAttribute('data-grouping') || 'true') !== 'false';
+          const suffix = el.getAttribute('data-suffix');
+          const formatter = getFormatter(decimals, grouping);
+          const formatted = formatter.format(rawValue);
+          el.textContent = suffix ? formatted + ' ' + suffix : formatted;
+        });
+
+        const dateInput = document.getElementById('ablesedatum');
+        if (dateInput) {
+          dateInput.setAttribute('lang', locale);
+          if (dateInput.value) {
+            const parsedDate = new Date(dateInput.value);
+            if (!isNaN(parsedDate)) {
+              dateInput.valueAsDate = parsedDate;
+            }
+          }
+        }
       });
     </script>
   </body>

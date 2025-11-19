@@ -613,7 +613,7 @@ def index(request: Request, user: dict = Depends(require_user)):
             )
         else:
             last = df.iloc[-1].to_dict()
-            rows = df.tail(24).to_dict(orient="records")
+            rows = list(reversed(df.tail(24).to_dict(orient="records")))
             last_price = parse_price_to_str(last.get("Strompreis", ""))
             form_values["strompreis_eur"] = last_price
             if last and "Datum" in last:
@@ -677,7 +677,7 @@ def submit(
             df = load_df()
             if not df.empty:
                 last = df.iloc[-1].to_dict()
-                rows = df.tail(24).to_dict(orient="records")
+                rows = list(reversed(df.tail(24).to_dict(orient="records")))
                 last_price = parse_price_to_str(last.get("Strompreis", ""))
                 if last and "Datum" in last:
                     last_date = datetime.strptime(last["Datum"], "%d.%m.%Y").date()

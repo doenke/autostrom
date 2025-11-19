@@ -146,6 +146,70 @@ label {
   margin-top: 0.5rem;
 }
 
+.table-wrapper {
+  margin-top: 1rem;
+}
+
+.table-wrapper table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.table-wrapper th,
+.table-wrapper td {
+  padding: 0.65rem 0.4rem;
+  border-bottom: 1px solid #e0e6f0;
+  text-align: left;
+}
+
+.table-wrapper th {
+  background: #f6f8fc;
+  color: var(--blue-thin);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 0.8rem;
+}
+
+.table-wrapper td.numeric,
+.table-wrapper th.numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.table-wrapper td.actions,
+.table-wrapper th.actions {
+  text-align: center;
+  width: 4rem;
+}
+
+.readings-table tr:last-child td {
+  border-bottom: none;
+}
+
+.delete-entry-form {
+  display: flex;
+  justify-content: center;
+}
+
+.icon-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0.1rem;
+  color: #666;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.icon-button:hover,
+.icon-button:focus {
+  color: var(--coral);
+  transform: scale(1.05);
+}
 
 .danger-button {
     background: #b03535;
