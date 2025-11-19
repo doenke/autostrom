@@ -76,6 +76,9 @@
       >
       PDF per E-Mail senden
     </label>
+    {% if mail_to_display %}
+      <small class="muted">Versand an: {{ mail_to_display }}</small>
+    {% endif %}
   {% endif %}
 
   {% if paperless_available %}

@@ -47,6 +47,9 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 SMTP_SSL = os.getenv("SMTP_SSL", "false").lower() == "true"
 MAIL_FROM = os.getenv("MAIL_FROM", SMTP_USER)
 MAIL_TO = os.getenv("MAIL_TO", "")  # comma-separated
+MAIL_TO_DISPLAY = ", ".join(
+    [addr.strip() for addr in MAIL_TO.split(",") if addr.strip()]
+)
 
 PDF_NAME = os.getenv("PDF_NAME", "")
 PDF_STREET = os.getenv("PDF_STREET", "")
@@ -632,6 +635,7 @@ def index(request: Request, user: dict = Depends(require_user)):
                 "error_msg": error_msg,
                 "info_msg": info_msg,
                 "mail_available": mail_available,
+                "mail_to_display": MAIL_TO_DISPLAY,
                 "paperless_available": paperless_available,
                 "default_mail_checked": default_mail_checked,
                 "default_paperless_checked": default_paperless_checked,
@@ -674,6 +678,7 @@ def index(request: Request, user: dict = Depends(require_user)):
             "error_msg": error_msg,
             "info_msg": info_msg,
             "mail_available": mail_available,
+            "mail_to_display": MAIL_TO_DISPLAY,
             "paperless_available": paperless_available,
             "default_mail_checked": default_mail_checked,
             "default_paperless_checked": default_paperless_checked,
@@ -751,6 +756,7 @@ def submit(
                 "error_msg": error_msg,
                 "info_msg": None,
                 "mail_available": mail_available,
+                "mail_to_display": MAIL_TO_DISPLAY,
                 "paperless_available": paperless_available,
                 "default_mail_checked": default_mail_checked,
                 "default_paperless_checked": default_paperless_checked,
