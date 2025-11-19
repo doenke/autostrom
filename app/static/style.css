@@ -125,6 +125,15 @@ input[type="text"] {
   box-sizing: border-box;
 }
 
+.date-display {
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.muted strong[data-number] {
+  font-variant-numeric: tabular-nums;
+}
+
 input:focus {
   outline: none;
   border-color: var(--blue-thin);
@@ -146,8 +155,14 @@ label {
   margin-top: 0.5rem;
 }
 
+
 .table-wrapper {
   margin-top: 1rem;
+  border-radius: 16px;
+  border: 1px solid #dbe3f3;
+  box-shadow: 0 10px 30px rgba(0, 52, 102, 0.08);
+  overflow: hidden;
+  background: linear-gradient(135deg, #ffffff 0%, #f6f9ff 100%);
 }
 
 .table-wrapper table {
@@ -158,18 +173,27 @@ label {
 
 .table-wrapper th,
 .table-wrapper td {
-  padding: 0.65rem 0.4rem;
+  padding: 0.85rem 0.75rem;
   border-bottom: 1px solid #e0e6f0;
   text-align: left;
 }
 
-.table-wrapper th {
-  background: #f6f8fc;
+.table-wrapper thead th {
+  background: linear-gradient(90deg, rgba(0, 76, 153, 0.07), rgba(0, 76, 153, 0.15));
   color: var(--blue-thin);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   font-size: 0.8rem;
+}
+
+.table-wrapper tbody tr:nth-child(even) {
+  background: rgba(207, 228, 255, 0.25);
+}
+
+.table-wrapper tbody tr:hover {
+  background: rgba(255, 111, 97, 0.08);
+  transition: background 0.2s ease;
 }
 
 .table-wrapper td.numeric,

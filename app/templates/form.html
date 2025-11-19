@@ -22,8 +22,23 @@
 <p class="muted">
   {% if last %}
     Letzte Ablesung: <strong>{{ last.Datum }}</strong><br>
-    Zählerstand: <strong>{{ last.Zaehlerstand }} kWh</strong> Strompreis:
-    <strong>{{ '%.4f'|format((last.Strompreis|string).replace(',', '.')|float) }} €/kWh</strong>
+    Zählerstand:
+    <strong
+      data-number="{{ ((last.Zaehlerstand|string)|replace(',', '.')) }}"
+      data-decimals="0"
+      data-suffix="kWh"
+    >
+      {{ last.Zaehlerstand }} kWh
+    </strong>
+    &nbsp;&middot;&nbsp;
+    Strompreis:
+    <strong
+      data-number="{{ ((last.Strompreis|string)|replace(',', '.')|float) }}"
+      data-decimals="4"
+      data-suffix="€/kWh"
+    >
+      {{ '%.4f'|format((last.Strompreis|string).replace(',', '.')|float) }} €/kWh
+    </strong>
   {% else %}
     Noch keine Daten vorhanden.
   {% endif %}
@@ -32,13 +47,21 @@
 <form method="post" action="/submit" class="card form-new-reading">
   <!-- If you use CSRF protection, include the token here -->
 
-  <label for="ablesedatum">Ablesedatum</label>
+  <label for="ablesedatum_display">Ablesedatum</label>
   <input
-    type="date"
+    type="hidden"
     id="ablesedatum"
     name="ablesedatum"
     value="{{ form_values.ablesedatum or today_iso }}"
+  >
+  <input
+    type="text"
+    id="ablesedatum_display"
+    class="date-display"
+    placeholder="z. B. 24.06.2024"
     required
+    inputmode="numeric"
+    autocomplete="off"
   >
 
   <label for="zaehlerstand">Aktueller Zählerstand (kWh)</label>

@@ -58,14 +58,101 @@
           el.textContent = suffix ? formatted + ' ' + suffix : formatted;
         });
 
-        const dateInput = document.getElementById('ablesedatum');
-        if (dateInput) {
-          dateInput.setAttribute('lang', locale);
-          if (dateInput.value) {
-            const parsedDate = new Date(dateInput.value);
-            if (!isNaN(parsedDate)) {
-              dateInput.valueAsDate = parsedDate;
+        const isoDateInput = document.getElementById('ablesedatum');
+        const displayDateInput = document.getElementById('ablesedatum_display');
+        if (isoDateInput && displayDateInput) {
+          const dateFormatter = new Intl.DateTimeFormat(locale);
+          const pad = (value) => String(value).padStart(2, '0');
+
+          const formatDateForDisplay = (isoValue) => {
+            if (!isoValue) {
+              return '';
             }
+            const [year, month, day] = isoValue.split('-').map(Number);
+            if (!year || !month || !day) {
+              return '';
+            }
+            const date = new Date(Date.UTC(year, month - 1, day));
+            return dateFormatter.format(date);
+          };
+
+          const parseDisplayDate = (value) => {
+            if (!value) {
+              return '';
+            }
+            const normalized = value.trim();
+            if (!normalized) {
+              return '';
+            }
+
+            const isoMatch = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (isoMatch) {
+              return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+            }
+
+            const localizedMatch = normalized.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})$/);
+            if (localizedMatch) {
+              let day = localizedMatch[1];
+              let month = localizedMatch[2];
+              let year = localizedMatch[3];
+              if (year.length === 2) {
+                const yearNumber = parseInt(year, 10);
+                year = (yearNumber >= 70 ? 1900 + yearNumber : 2000 + yearNumber).toString();
+              }
+              const isoCandidate = `${year.padStart(4, '0')}-${pad(month)}-${pad(day)}`;
+              const checkDate = new Date(`${isoCandidate}T00:00:00`);
+              if (!Number.isNaN(checkDate.valueOf())) {
+                return isoCandidate;
+              }
+            }
+
+            const parsed = new Date(normalized);
+            if (!Number.isNaN(parsed.valueOf())) {
+              return [
+                parsed.getFullYear(),
+                pad(parsed.getMonth() + 1),
+                pad(parsed.getDate()),
+              ].join('-');
+            }
+            return '';
+          };
+
+          const syncDisplayValue = () => {
+            displayDateInput.value = formatDateForDisplay(isoDateInput.value);
+          };
+
+          if (!displayDateInput.value) {
+            syncDisplayValue();
+          }
+          displayDateInput.placeholder = formatDateForDisplay(new Date().toISOString().slice(0, 10));
+
+          displayDateInput.addEventListener('input', () => {
+            const parsed = parseDisplayDate(displayDateInput.value);
+            if (parsed) {
+              isoDateInput.value = parsed;
+            }
+            displayDateInput.setCustomValidity('');
+          });
+
+          displayDateInput.addEventListener('blur', () => {
+            if (isoDateInput.value) {
+              displayDateInput.value = formatDateForDisplay(isoDateInput.value);
+            }
+          });
+
+          const form = displayDateInput.closest('form');
+          if (form) {
+            form.addEventListener('submit', (event) => {
+              const parsed = parseDisplayDate(displayDateInput.value);
+              if (!parsed) {
+                event.preventDefault();
+                displayDateInput.setCustomValidity('Bitte ein gültiges Datum eingeben.');
+                displayDateInput.reportValidity();
+                return;
+              }
+              isoDateInput.value = parsed;
+              displayDateInput.value = formatDateForDisplay(parsed);
+            });
           }
         }
       });
