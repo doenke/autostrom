@@ -4,7 +4,7 @@
 
 <ul class="list">
   <li>Datum: <strong>{{ record.Datum }}</strong></li>
-  <li>Zählerstand: <strong>{{ record.Zaehlerstand }} kWh</strong></li>
+  <li>Zählerstand: <strong>{{ record.Zaehlerstand | thousands }} kWh</strong></li>
   <li>Verbrauch: <strong>{{ record.Verbrauch }} kWh</strong></li>
   <li>Preis: <strong>{{ '%.4f'|format(record.Strompreis) }} €/kWh</strong></li>
   <li>Betrag: <strong>{{ '%.2f'|format(record.Abrechnung) }} €</strong></li>
