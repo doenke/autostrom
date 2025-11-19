@@ -169,6 +169,37 @@ label {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
+  table-layout: fixed;
+}
+
+.table-wrapper caption {
+  text-align: left;
+  padding: 1rem 1rem 0.5rem 1rem;
+  font-weight: 600;
+  color: var(--blue-thin);
+}
+
+.table-wrapper colgroup col {
+  border-right: 1px solid rgba(0, 76, 153, 0.08);
+}
+
+.table-wrapper colgroup col:last-child {
+  border-right: none;
+}
+
+.table-wrapper col.col-action {
+  width: 5rem;
+}
+
+.table-wrapper col.col-date {
+  width: 8.5rem;
+}
+
+.table-wrapper col.col-meter,
+.table-wrapper col.col-usage,
+.table-wrapper col.col-price,
+.table-wrapper col.col-total {
+  width: calc((100% - 13.5rem) / 4);
 }
 
 .table-wrapper th,
@@ -203,6 +234,42 @@ label {
   white-space: nowrap;
 }
 
+.table-wrapper td[data-label] {
+  position: relative;
+}
+
+.table-wrapper td .cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.table-wrapper td .cell-value {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.table-wrapper td .cell-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(0, 76, 153, 0.8);
+}
+
+.table-wrapper td .cell-value.muted {
+  font-weight: 400;
+  color: #9fa8bb;
+}
+
+.table-wrapper tr.latest {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: inset 0 0 0 2px rgba(255, 111, 97, 0.35);
+}
+
+.table-wrapper tr.latest td .cell-value {
+  color: var(--coral);
+}
+
 .table-wrapper td.actions,
 .table-wrapper th.actions {
   text-align: center;
@@ -218,21 +285,31 @@ label {
   justify-content: center;
 }
 
+.table-wrapper td .cell.cell-actions {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .icon-button {
-  background: transparent;
-  border: none;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 76, 153, 0.35);
+  border-radius: 999px;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 1rem;
   line-height: 1;
-  padding: 0.1rem;
-  color: #666;
-  transition: color 0.2s ease, transform 0.2s ease;
+  padding: 0.35rem 0.55rem;
+  color: var(--blue-thin);
+  transition: color 0.2s ease, transform 0.2s ease, background 0.2s ease;
 }
 
 .icon-button:hover,
 .icon-button:focus {
-  color: var(--coral);
-  transform: scale(1.05);
+  color: #fff;
+  background: var(--coral);
+  border-color: var(--coral);
+  transform: translateY(-1px);
 }
 
 .danger-button {
@@ -274,5 +351,43 @@ footer {
 
   header .name {
     font-size: 1.3rem;
+  }
+
+  .table-wrapper table,
+  .table-wrapper thead,
+  .table-wrapper tbody,
+  .table-wrapper th,
+  .table-wrapper td,
+  .table-wrapper tr {
+    display: block;
+    width: 100%;
+  }
+
+  .table-wrapper thead {
+    display: none;
+  }
+
+  .table-wrapper tr {
+    border-bottom: 1px solid #dbe3f3;
+    padding: 0.6rem 0.85rem;
+  }
+
+  .table-wrapper td {
+    border: none;
+    padding: 0.4rem 0;
+  }
+
+  .table-wrapper td .cell {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .table-wrapper td .cell-label {
+    font-size: 0.8rem;
+  }
+
+  .table-wrapper td .cell-value {
+    font-size: 0.95rem;
   }
 }

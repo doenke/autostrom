@@ -121,66 +121,103 @@
     <h2>Letzte Einträge</h2>
 
     <div class="table-wrapper">
-      <table class="medplan readings-table">
+      <table class="readings-table">
+        <caption>Auflistung der letzten Ablesungen</caption>
+        <colgroup>
+          <col class="col-date" />
+          <col class="col-meter" />
+          <col class="col-usage" />
+          <col class="col-price" />
+          <col class="col-total" />
+          <col class="col-action" />
+        </colgroup>
         <thead>
           <tr>
-            <th>Datum</th>
-            <th class="numeric">Zählerstand</th>
-            <th class="numeric">Verbrauch</th>
-            <th class="numeric">Strompreis</th>
-            <th class="numeric">Abrechnung</th>
+            <th scope="col">Datum</th>
+            <th scope="col" class="numeric">Zählerstand</th>
+            <th scope="col" class="numeric">Verbrauch</th>
+            <th scope="col" class="numeric">Strompreis</th>
+            <th scope="col" class="numeric">Abrechnung</th>
             <th class="actions" scope="col">Aktion</th>
           </tr>
         </thead>
         <tbody>
           {% for r in rows %}
-            <tr>
-              <td>{{ r.Datum }}</td>
+            <tr class="{% if loop.first %}latest{% endif %}">
+              <td data-label="Datum">
+                <div class="cell">
+                  <span class="cell-label">Datum</span>
+                  <span class="cell-value">{{ r.Datum }}</span>
+                </div>
+              </td>
               <td
                 class="numeric"
+                data-label="Zählerstand"
                 data-number="{{ ((r.Zaehlerstand|string)|replace(',', '.')) }}"
                 data-decimals="0"
                 data-suffix="kWh"
               >
-                {{ r.Zaehlerstand }} kWh
+                <div class="cell">
+                  <span class="cell-label">Zählerstand</span>
+                  <span class="cell-value">{{ r.Zaehlerstand }} kWh</span>
+                </div>
               </td>
               <td
                 class="numeric"
+                data-label="Verbrauch"
                 data-number="{{ ((r.Verbrauch|string)|replace(',', '.')) }}"
                 data-decimals="0"
                 data-suffix="kWh"
               >
-                {{ r.Verbrauch }} kWh
+                <div class="cell">
+                  <span class="cell-label">Verbrauch</span>
+                  <span class="cell-value">{{ r.Verbrauch }} kWh</span>
+                </div>
               </td>
               <td
                 class="numeric"
+                data-label="Strompreis"
                 data-number="{{ ((r.Strompreis|string)|replace(',', '.')|float) }}"
                 data-decimals="4"
                 data-suffix="€/kWh"
               >
-                {{ '%.4f'|format((r.Strompreis|string).replace(',', '.')|float) }} €/kWh
+                <div class="cell">
+                  <span class="cell-label">Strompreis</span>
+                  <span class="cell-value">
+                    {{ '%.4f'|format((r.Strompreis|string).replace(',', '.')|float) }} €/kWh
+                  </span>
+                </div>
               </td>
               <td
                 class="numeric"
+                data-label="Abrechnung"
                 data-number="{{ ((r.Abrechnung|string)|replace(',', '.')|float) }}"
                 data-decimals="2"
                 data-suffix="€"
               >
-                {{ '%.2f'|format((r.Abrechnung|string).replace(',', '.')|float) }} €
+                <div class="cell">
+                  <span class="cell-label">Abrechnung</span>
+                  <span class="cell-value">{{ '%.2f'|format((r.Abrechnung|string).replace(',', '.')|float) }} €</span>
+                </div>
               </td>
-              <td class="actions">
-                {% if loop.first and show_delete_button %}
-                  <form
-                    action="/delete-last"
-                    method="post"
-                    class="delete-entry-form"
-                    title="Letzte Zeile löschen"
-                  >
-                    <button type="submit" class="icon-button" aria-label="Letzte Zeile löschen">
-                      <span aria-hidden="true">🗑️</span>
-                    </button>
-                  </form>
-                {% endif %}
+              <td class="actions" data-label="Aktion">
+                <div class="cell cell-actions">
+                  <span class="cell-label">Aktion</span>
+                  {% if loop.first and show_delete_button %}
+                    <form
+                      action="/delete-last"
+                      method="post"
+                      class="delete-entry-form"
+                      title="Letzte Zeile löschen"
+                    >
+                      <button type="submit" class="icon-button" aria-label="Letzte Zeile löschen">
+                        <span aria-hidden="true">🗑️</span>
+                      </button>
+                    </form>
+                  {% else %}
+                    <span class="cell-value muted">&ndash;</span>
+                  {% endif %}
+                </div>
               </td>
             </tr>
           {% endfor %}
