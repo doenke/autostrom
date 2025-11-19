@@ -94,6 +94,11 @@ table td {
   border-bottom: 1px solid #e1e7f0;
 }
 
+.medplan th:not(:first-child):not(.actions-col),
+.medplan td:not(:first-child):not(.actions) {
+  text-align: right;
+}
+
 table thead th {
   background: var(--blue-light);
   color: var(--blue-thin);
