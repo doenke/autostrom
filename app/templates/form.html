@@ -22,7 +22,7 @@
 <p class="muted">
   {% if last %}
     Letzte Ablesung: <strong>{{ last.Datum }}</strong><br>
-    Zählerstand: <strong>{{ last.Zaehlerstand }} kWh</strong> Strompreis:
+    Zählerstand: <strong>{{ last.Zaehlerstand | thousands }} kWh</strong> Strompreis:
     <strong>{{ '%.4f'|format((last.Strompreis|string).replace(',', '.')|float) }} €/kWh</strong>
   {% else %}
     Noch keine Daten vorhanden.
@@ -124,7 +124,7 @@
           {% for r in rows %}
             <tr>
               <td>{{ r.Datum }}</td>
-              <td>{{ r.Zaehlerstand }} kWh</td>
+              <td>{{ r.Zaehlerstand | thousands }} kWh</td>
               <td>{{ r.Verbrauch }} kWh</td>
               <td>{{ '%.4f'|format((r.Strompreis|string).replace(',', '.')|float) }} €</td>
               <td>{{ '%.2f'|format((r.Abrechnung|string).replace(',', '.')|float) }} €</td>

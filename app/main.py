@@ -84,6 +84,24 @@ app.mount(
 )
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
+
+def format_thousands(value) -> str:
+    """Format whole numbers with a dot as thousands separator for display."""
+    if value is None:
+        return ""
+
+    try:
+        if isinstance(value, str):
+            value = value.replace(".", "").replace(",", ".")
+        number = float(value)
+    except (TypeError, ValueError):
+        return str(value)
+
+    return f"{int(round(number)):,}".replace(",", ".")
+
+
+templates.env.filters["thousands"] = format_thousands
+
 oauth = OAuth() if OIDC_ENABLED else None
 if OIDC_ENABLED:
     oauth.register(
