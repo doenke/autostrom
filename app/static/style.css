@@ -209,6 +209,11 @@ label {
   text-align: left;
 }
 
+.table-wrapper th + th,
+.table-wrapper td + td {
+  border-left: 1px solid #e4ebf6;
+}
+
 .table-wrapper thead th {
   background: linear-gradient(90deg, rgba(0, 76, 153, 0.07), rgba(0, 76, 153, 0.15));
   color: var(--blue-thin);
@@ -218,8 +223,16 @@ label {
   font-size: 0.8rem;
 }
 
+.table-wrapper thead tr {
+  border-bottom: 2px solid rgba(0, 76, 153, 0.2);
+}
+
+.table-wrapper tbody tr:nth-child(odd) {
+  background: #fff;
+}
+
 .table-wrapper tbody tr:nth-child(even) {
-  background: rgba(207, 228, 255, 0.25);
+  background: #f5f8ff;
 }
 
 .table-wrapper tbody tr:hover {
@@ -375,6 +388,11 @@ footer {
   .table-wrapper td {
     border: none;
     padding: 0.4rem 0;
+  }
+
+  .table-wrapper th + th,
+  .table-wrapper td + td {
+    border-left: none;
   }
 
   .table-wrapper td .cell {

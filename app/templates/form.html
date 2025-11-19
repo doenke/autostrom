@@ -122,7 +122,6 @@
 
     <div class="table-wrapper">
       <table class="readings-table">
-        <caption>Auflistung der letzten Ablesungen</caption>
         <colgroup>
           <col class="col-date" />
           <col class="col-meter" />
@@ -144,9 +143,8 @@
         <tbody>
           {% for r in rows %}
             <tr class="{% if loop.first %}latest{% endif %}">
-              <td data-label="Datum">
+              <td>
                 <div class="cell">
-                  <span class="cell-label">Datum</span>
                   <span class="cell-value">{{ r.Datum }}</span>
                 </div>
               </td>
@@ -200,9 +198,8 @@
                   <span class="cell-value">{{ '%.2f'|format((r.Abrechnung|string).replace(',', '.')|float) }} €</span>
                 </div>
               </td>
-              <td class="actions" data-label="Aktion">
+              <td class="actions">
                 <div class="cell cell-actions">
-                  <span class="cell-label">Aktion</span>
                   {% if loop.first and show_delete_button %}
                     <form
                       action="/delete-last"
@@ -214,8 +211,6 @@
                         <span aria-hidden="true">🗑️</span>
                       </button>
                     </form>
-                  {% else %}
-                    <span class="cell-value muted">&ndash;</span>
                   {% endif %}
                 </div>
               </td>
