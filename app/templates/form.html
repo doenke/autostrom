@@ -118,6 +118,9 @@
             <th>Verbrauch</th>
             <th>Strompreis</th>
             <th>Abrechnung</th>
+            {% if show_delete_button %}
+              <th class="actions-col">Aktion</th>
+            {% endif %}
           </tr>
         </thead>
         <tbody>
@@ -128,23 +131,27 @@
               <td>{{ r.Verbrauch }} kWh</td>
               <td>{{ '%.4f'|format((r.Strompreis|string).replace(',', '.')|float) }} €</td>
               <td>{{ '%.2f'|format((r.Abrechnung|string).replace(',', '.')|float) }} €</td>
+              {% if show_delete_button %}
+                <td class="actions">
+                  {% if loop.first %}
+                    <form action="/delete-last" method="post" class="delete-form">
+                      <!-- If you use CSRF protection, include the token here -->
+                      <button
+                        type="submit"
+                        class="trash-button"
+                        aria-label="Letzte Zeile aus CSV löschen"
+                      >
+                        🗑️
+                      </button>
+                    </form>
+                  {% endif %}
+                </td>
+              {% endif %}
             </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-
-    {% if show_delete_button %}
-      <form action="/delete-last" method="post" class="delete-form">
-        <!-- If you use CSRF protection, include the token here -->
-        <button
-          type="submit"
-          class="danger-button"
-        >
-          Letzte Zeile aus CSV löschen
-        </button>
-      </form>
-    {% endif %}
   </section>
 {% endif %}
 
