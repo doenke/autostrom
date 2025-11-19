@@ -40,8 +40,17 @@
     value="{{ form_values.ablesedatum or today_iso }}"
   >
   <input
+    type="date"
+    id="ablesedatum_date"
+    class="native-date-input"
+    value="{{ form_values.ablesedatum or today_iso }}"
+    autocomplete="off"
+    aria-describedby="ablesedatum_hint"
+  >
+  <input
     type="text"
     id="ablesedatum_display"
+    class="localized-date-input is-hidden"
     name="ablesedatum_display"
     inputmode="numeric"
     autocomplete="off"
@@ -50,7 +59,7 @@
     required
   >
   <small class="muted" id="ablesedatum_hint">
-    Das Datum wird automatisch passend zu deiner Sprache formatiert (z. B. 31.12.2024).
+    Wähle das Datum über den Datepicker oder gib es manuell ein (z. B. 31.12.2024).
   </small>
 
   <label for="zaehlerstand">Aktueller Zählerstand (kWh)</label>

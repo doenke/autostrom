@@ -34,12 +34,58 @@
         setupLocalizedDateInput();
       });
 
+      function supportsDateInput(element) {
+        if (!element) {
+          return false;
+        }
+        if (element.type !== 'date') {
+          return false;
+        }
+        var test = document.createElement('input');
+        test.setAttribute('type', 'date');
+        var testValue = 'not-a-date';
+        test.value = testValue;
+        return test.value !== testValue;
+      }
+
       function setupLocalizedDateInput() {
         var hiddenInput = document.getElementById('ablesedatum');
+        var nativeInput = document.getElementById('ablesedatum_date');
         var displayInput = document.getElementById('ablesedatum_display');
-        if (!hiddenInput || !displayInput) {
+        if (!hiddenInput) {
           return;
         }
+
+        if (nativeInput && supportsDateInput(nativeInput)) {
+          var initial = hiddenInput.value || nativeInput.value;
+          nativeInput.value = initial;
+          hiddenInput.value = initial;
+          nativeInput.setAttribute('name', 'ablesedatum');
+          hiddenInput.removeAttribute('name');
+          nativeInput.required = true;
+          if (displayInput) {
+            displayInput.classList.add('is-hidden');
+            displayInput.removeAttribute('required');
+          }
+
+          var syncFromNative = function () {
+            hiddenInput.value = nativeInput.value;
+          };
+          nativeInput.addEventListener('change', syncFromNative);
+          nativeInput.addEventListener('input', syncFromNative);
+          return;
+        }
+
+        if (nativeInput) {
+          nativeInput.classList.add('is-hidden');
+          nativeInput.removeAttribute('name');
+        }
+        hiddenInput.setAttribute('name', 'ablesedatum');
+        if (!displayInput) {
+          return;
+        }
+        displayInput.classList.remove('is-hidden');
+        displayInput.required = true;
 
         var locale = navigator.language || navigator.userLanguage || 'de-DE';
         var formatter;

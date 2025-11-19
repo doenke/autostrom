@@ -183,6 +183,10 @@ input:focus {
   box-shadow: 0 0 0 3px var(--blue-light);
 }
 
+.is-hidden {
+  display: none !important;
+}
+
 label {
   display: block;
   margin-top: 0.8rem;
