@@ -1,12 +1,16 @@
 services:
   autostrom:
-    # baut direkt aus deinem GitHub-Repo (Branch "main")
+    # baut direkt aus dem GitHub-Repo (Branch "main")
     build: https://github.com/doenke/autostrom.git#main
     container_name: autostrom
+    env_file:
+      - stack.env
+    command: >
+      uvicorn app.main:app
+      --host 0.0.0.0 --port 8000
+      --proxy-headers --forwarded-allow-ips="*"
     ports:
       - "8089:8000"          # extern 8089 → intern 8000 (FastAPI)
-    env_file:
-      - .env                 # lokale .env mit deinen Zugangsdaten
     volumes:
-      - ./data:/app/data     # CSV & PDFs bleiben außerhalb des Containers erhalten
+      - /data/container/autostrom:/app/data     # CSV & PDFs bleiben außerhalb des Containers erhalten
     restart: unless-stopped
