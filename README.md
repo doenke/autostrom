@@ -73,3 +73,6 @@ Die Oberfläche ist anschließend unter <http://localhost:8000> erreichbar.
 
 ## Lizenz
 MIT-Lizenz (siehe `LICENSE`).
+
+## Projekt-Repository
+Der Quellcode liegt auf GitHub: <https://github.com/doenke/autostrom>.
