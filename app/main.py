@@ -88,6 +88,11 @@ app.mount(
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 
+@app.get("/health", tags=["Health"])
+def health() -> dict:
+    return {"status": "ok"}
+
+
 def format_thousands(value) -> str:
     """Format whole numbers with a dot as thousands separator for display."""
     if value is None:
