@@ -1,6 +1,7 @@
 services:
   autostrom:
-    build: .
+    # baut direkt aus dem GitHub-Repo (Branch "main")
+    build: https://github.com/doenke/autostrom.git#main
     container_name: autostrom
     env_file:
       - stack.env
