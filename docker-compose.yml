@@ -1,7 +1,6 @@
 services:
   autostrom:
-    # baut direkt aus dem GitHub-Repo (Branch "main")
-    build: https://github.com/doenke/autostrom.git#main
+    build: .
     container_name: autostrom
     env_file:
       - stack.env
@@ -14,3 +13,9 @@ services:
     volumes:
       - /data/container/autostrom:/app/data     # CSV & PDFs bleiben außerhalb des Containers erhalten
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
