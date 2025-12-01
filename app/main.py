@@ -400,15 +400,7 @@ def render_pdf(output_path: str, rows: list[dict], new_record: dict) -> None:
         )
     )
 
-    # Footer (Seitenzahlen)
-    def on_page(canvas, doc_):
-        canvas.saveState()
-        footer = f"Seite {doc_.page}"
-        canvas.setFont("Helvetica", 9)
-        canvas.drawCentredString(A4[0] / 2.0, 1.2 * cm, footer)
-        canvas.restoreState()
-
-    doc.build(story, onFirstPage=on_page, onLaterPages=on_page)
+    doc.build(story)
 
 
 # ---------------------------------------------------------------------------
